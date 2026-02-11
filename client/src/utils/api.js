@@ -88,7 +88,8 @@ export const chatAPI = {
   startConversation: () => api.post('/chat/conversations'),
 };
 
-export const SOCKET_URL = '/';
+const apiUrl = import.meta.env.VITE_API_URL || '/api';
+export const SOCKET_URL = apiUrl.startsWith('http') ? apiUrl.replace('/api', '') : '/';
 
 export const packageAPI = {
   createPackage: (packageData) => api.post('/packages/create', packageData),
