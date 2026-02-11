@@ -38,7 +38,7 @@ const ChatWidget = () => {
 
         console.log('🔌 ChatWidget: Initializing socket to', ENDPOINT);
         const newSocket = io(ENDPOINT, {
-            transports: ['websocket', 'polling'],
+            transports: ['polling'],
             reconnection: true,
             timeout: 10000,
         });

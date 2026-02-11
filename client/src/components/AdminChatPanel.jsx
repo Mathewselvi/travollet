@@ -24,7 +24,7 @@ const AdminChatPanel = () => {
 
     useEffect(() => {
         const newSocket = io(ENDPOINT, {
-            transports: ['websocket', 'polling'],
+            transports: ['polling'],
             reconnection: true,
         });
         // eslint-disable-next-line react-hooks/set-state-in-effect
