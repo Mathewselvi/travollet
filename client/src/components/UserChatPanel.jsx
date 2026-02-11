@@ -1,0 +1,165 @@
+import { useState, useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
+import { useAuth } from '../context/AuthContext';
+import { chatAPI } from '../utils/api';
+
+import { SOCKET_URL } from '../utils/api';
+
+const ENDPOINT = SOCKET_URL;
+
+const UserChatPanel = () => {
+    const { user } = useAuth();
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [socket, setSocket] = useState(null);
+    const messagesEndRef = useRef(null);
+    const typingTimeoutRef = useRef(null);
+
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        if (!user) return;
+
+        const newSocket = io(ENDPOINT, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+        });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSocket(newSocket);
+
+
+        const userId = user._id || user.id;
+        if (userId) {
+            console.log('🔌 UserChatPanel Joining Room:', userId);
+            newSocket.emit('join_chat', userId);
+        } else {
+            console.error('❌ UserChatPanel Missing UserID:', user);
+        }
+
+
+        const fetchHistory = async () => {
+            try {
+                const response = await chatAPI.getMyHistory();
+                setMessages(response.data);
+                scrollToBottom();
+            } catch (err) {
+                console.error('Failed to load chat history', err);
+            }
+        };
+        fetchHistory();
+
+
+        newSocket.on('receive_message', (message) => {
+            console.log('📨 UserChatPanel Received:', message);
+            setMessages((prev) => [...prev, message]);
+            scrollToBottom();
+        });
+
+        newSocket.on('connect', () => {
+            console.log('✅ UserChatPanel Connected:', newSocket.id);
+        });
+
+        return () => newSocket.disconnect();
+    }, [user]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+
+
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        const userId = user._id || user.id;
+        if (!newMessage.trim() || !socket || !userId) return;
+
+        const messageData = {
+            senderId: userId,
+            receiverId: null,
+            conversationId: userId,
+            content: newMessage,
+            isAdmin: false
+        };
+
+        socket.emit('send_message', messageData);
+        socket.emit('stop_typing', { room: userId, isTyping: false });
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        setNewMessage('');
+    };
+
+    return (
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden h-[600px] flex flex-col">
+            { }
+            <div className="bg-black text-white p-6 flex justify-between items-center">
+                <div>
+                    <h3 className="font-serif font-bold text-xl mb-1">Support Inbox</h3>
+                    <p className="text-sm text-gray-400">Direct line to Travollet Concierge</p>
+                </div>
+                <div className="bg-white/10 px-4 py-2 rounded-full text-xs font-bold text-gold uppercase tracking-widest">
+                    Active
+                </div>
+            </div>
+
+            { }
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-gray-50">
+                {messages.length === 0 && (
+                    <div className="text-center text-gray-400 mt-20">
+                        <div className="text-5xl mb-4">💬</div>
+                        <p className="text-lg">Start a conversation with us!</p>
+                        <p className="text-sm">We are here to help you plan your perfect trip.</p>
+                    </div>
+                )}
+                {messages.map((msg, index) => (
+                    <div
+                        key={index}
+                        className={`flex ${msg.isAdmin ? 'justify-start' : 'justify-end'}`}
+                    >
+                        <div className={`max-w-[70%] rounded-2xl p-5 ${msg.isAdmin
+                            ? 'bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-100'
+                            : 'bg-black text-white rounded-tr-none shadow-md'
+                            }`}>
+                            <p className="text-sm leading-relaxed">{msg.content}</p>
+                            <p className={`text-[10px] mt-2 ${msg.isAdmin ? 'text-gray-400' : 'text-gray-500'} text-right`}>
+                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+                <div ref={messagesEndRef} />
+            </div>
+
+            { }
+            <form onSubmit={handleSendMessage} className="p-6 bg-white border-t border-gray-100 flex gap-4">
+                <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        if (socket && user) {
+                            socket.emit('typing', { room: user._id || user.id, isTyping: true });
+                            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                            typingTimeoutRef.current = setTimeout(() => {
+                                socket.emit('stop_typing', { room: user._id || user.id, isTyping: false });
+                            }, 2000);
+                        }
+                    }}
+                    placeholder="Type your message..."
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                />
+                <button
+                    type="submit"
+                    disabled={!newMessage.trim()}
+                    className="bg-gold text-black px-8 py-4 rounded-full font-bold hover:bg-yellow-500 transition-colors disabled:opacity-50 hover:shadow-lg transform active:scale-95 duration-200"
+                >
+                    Send
+                </button>
+            </form>
+        </div>
+    );
+};
+
+export default UserChatPanel;

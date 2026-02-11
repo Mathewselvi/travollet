@@ -1,0 +1,28 @@
+
+> server@1.0.0 dev
+> nodemon index.js
+
+[33m[nodemon] 3.1.11[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node index.js`[39m
+[dotenv@17.2.3] injecting env (7) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Connecting to MongoDB... URI Provided
+Server is running on port 5001
+MongoDB connected successfully
+User connected: w-Knq9u6-4K4j4NzAAAB
+[SOCKET] User w-Knq9u6-4K4j4NzAAAB joined room "guest_ybpctd0"
+User disconnected w-Knq9u6-4K4j4NzAAAB
+User connected: jkDgt9z3SGrb_LeQAAAD
+[SOCKET] User jkDgt9z3SGrb_LeQAAAD joined room "guest_ybpctd0"
+User disconnected jkDgt9z3SGrb_LeQAAAD
+User connected: ehziI0rIIx3VPUTSAAAF
+[SOCKET] User ehziI0rIIx3VPUTSAAAF joined room "696dc41beb651d7525dbb49d"
+User disconnected ehziI0rIIx3VPUTSAAAF
+User connected: 5D89WokHF4JnZOHkAAAH
+User disconnected 5D89WokHF4JnZOHkAAAH
+User connected: UUa5mBukBlAjVruqAAAJ
+[SOCKET] User UUa5mBukBlAjVruqAAAJ joined room "696dc41beb651d7525dbb49d"
+User disconnected UUa5mBukBlAjVruqAAAJ
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
