@@ -7,27 +7,9 @@ const path = require('path');
 const fs = require('fs');
 
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../uploads/content');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+const { storage } = require('../config/cloudinary');
 
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 }
-});
-
-
-
+const upload = multer({ storage: storage });
 
 // Debugging Model Loading
 console.log('SiteContent Model Loaded:', SiteContent);
@@ -48,9 +30,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-
-
-
 router.put('/:key', adminAuth, upload.single('image'), async (req, res) => {
     try {
         const { key } = req.params;
@@ -61,16 +40,9 @@ router.put('/:key', adminAuth, upload.single('image'), async (req, res) => {
         }
 
         if (req.file) {
-
-            if (content.imageUrl && content.imageUrl.startsWith('/uploads/')) {
-                const oldPath = path.join(__dirname, '..', content.imageUrl);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
-                }
-            }
-            content.imageUrl = `/uploads/content/${req.file.filename}`;
+            // Cloudinary returns the URL in file.path
+            content.imageUrl = req.file.path;
         } else if (req.body.imageUrl) {
-
             content.imageUrl = req.body.imageUrl;
         }
 
