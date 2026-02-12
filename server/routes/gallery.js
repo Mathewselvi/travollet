@@ -1,45 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const Gallery = require('../models/Gallery');
 const { adminAuth } = require('../middleware/auth');
+const { storage, cloudinary } = require('../config/cloudinary');
 
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../uploads');
-        
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-    } else {
-        cb(new Error('Only image files are allowed!'), false);
-    }
-};
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 }, 
-    fileFilter: fileFilter
-});
-
-
-
+const upload = multer({ storage: storage });
 
 router.post('/', adminAuth, upload.array('images', 20), async (req, res) => {
     try {
@@ -50,13 +16,15 @@ router.post('/', adminAuth, upload.array('images', 20), async (req, res) => {
         const uploadedImages = [];
 
         for (const file of req.files) {
-            
-            const imageUrl = `/uploads/${file.filename}`;
+
+            // Cloudinary storage puts the url in file.path and public_id in file.filename (or file.public_id depending on config)
+            const imageUrl = file.path;
+            const publicId = file.filename; // multer-storage-cloudinary uses filename for public_id
 
             const newImage = new Gallery({
                 imageUrl,
-                caption: req.body.caption || '', 
-                publicId: file.filename,
+                caption: req.body.caption || '',
+                publicId: publicId,
                 uploadedBy: req.user ? req.user.id : null
             });
 
@@ -75,8 +43,6 @@ router.post('/', adminAuth, upload.array('images', 20), async (req, res) => {
 });
 
 
-
-
 router.get('/', async (req, res) => {
     try {
         const images = await Gallery.find().sort({ createdAt: -1 });
@@ -87,8 +53,6 @@ router.get('/', async (req, res) => {
 });
 
 
-
-
 router.delete('/:id', adminAuth, async (req, res) => {
     try {
         const image = await Gallery.findById(req.params.id);
@@ -96,10 +60,9 @@ router.delete('/:id', adminAuth, async (req, res) => {
             return res.status(404).json({ message: 'Image not found' });
         }
 
-        
-        const filePath = path.join(__dirname, '../uploads', image.publicId);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Delete from Cloudinary
+        if (image.publicId) {
+            await cloudinary.uploader.destroy(image.publicId);
         }
 
         await Gallery.findByIdAndDelete(req.params.id);
