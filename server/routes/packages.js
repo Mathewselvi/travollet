@@ -89,7 +89,13 @@ router.post('/create', auth, async (req, res) => {
     const sightseeingTotal = sightseeing.reduce((total, sight) =>
       total + (sight.pricePerPerson * numberOfPeople), 0
     );
-    const grandTotal = stayTotal + transportationTotal + sightseeingTotal;
+
+    let airportTransferPrice = 0;
+    if (req.body.airportPickup && req.body.airportTransferDetails && req.body.airportTransferDetails.vehicles) {
+      airportTransferPrice = req.body.airportTransferDetails.vehicles.reduce((sum, v) => sum + (v.price * v.count), 0);
+    }
+
+    const grandTotal = stayTotal + transportationTotal + sightseeingTotal + airportTransferPrice;
 
 
     const package = new Package({
@@ -105,10 +111,13 @@ router.post('/create', auth, async (req, res) => {
         stayTotal,
         transportationTotal,
         sightseeingTotal,
+        airportTransfer: airportTransferPrice,
         grandTotal
       },
       specialRequests,
-      status: 'draft'
+      status: 'draft',
+      airportPickup: req.body.airportPickup,
+      airportTransferDetails: req.body.airportTransferDetails
     });
 
     await package.save();
@@ -482,12 +491,23 @@ router.put('/:id', auth, async (req, res) => {
       const sightseeingTotal = sightseeing.reduce((total, sight) =>
         total + (sight.pricePerPerson * numberOfPeople), 0
       );
-      const grandTotal = stayTotal + transportationTotal + sightseeingTotal;
+
+      let airportTransferPrice = 0;
+      // Check if airport details are being updated OR exist in the package
+      const airportPickup = req.body.airportPickup !== undefined ? req.body.airportPickup : package.airportPickup;
+      const airportDetails = req.body.airportTransferDetails || package.airportTransferDetails;
+
+      if (airportPickup && airportDetails && airportDetails.vehicles) {
+        airportTransferPrice = airportDetails.vehicles.reduce((sum, v) => sum + (v.price * v.count), 0);
+      }
+
+      const grandTotal = stayTotal + transportationTotal + sightseeingTotal + airportTransferPrice;
 
       req.body.pricing = {
         stayTotal,
         transportationTotal,
         sightseeingTotal,
+        airportTransfer: airportTransferPrice,
         grandTotal
       };
     }
