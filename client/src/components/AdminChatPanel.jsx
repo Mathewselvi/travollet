@@ -15,6 +15,15 @@ const AdminChatPanel = () => {
     };
 
 
+    const fetchConversations = async () => {
+        try {
+            const response = await adminAPI.getAllConversations();
+            setConversations(response.data);
+        } catch (err) {
+            console.error('Error fetching conversations:', err);
+        }
+    };
+
     useEffect(() => {
         fetchConversations();
         // Poll conversations every 10 seconds
