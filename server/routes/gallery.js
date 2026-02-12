@@ -62,7 +62,11 @@ router.delete('/:id', adminAuth, async (req, res) => {
 
         // Delete from Cloudinary
         if (image.publicId) {
-            await cloudinary.uploader.destroy(image.publicId);
+            try {
+                await cloudinary.uploader.destroy(image.publicId);
+            } catch (err) {
+                console.warn(`Failed to delete from Cloudinary: ${err.message}`);
+            }
         }
 
         await Gallery.findByIdAndDelete(req.params.id);
