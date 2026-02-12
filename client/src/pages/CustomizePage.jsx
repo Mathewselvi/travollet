@@ -110,7 +110,7 @@ const CustomizePage = () => {
     if (formData.stayId && formData.transportationId) {
       calculatePricing();
     }
-  }, [formData.stayId, formData.transportationId, formData.sightseeingIds, formData.numberOfPeople, formData.numberOfDays]);
+  }, [formData.stayId, formData.transportationId, formData.sightseeingIds, formData.numberOfPeople, formData.numberOfDays, airportPickup, flightDetails.vehicles]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -220,7 +220,7 @@ const CustomizePage = () => {
     }
 
     if (airportPickup) {
-      if (!flightDetails.vehicleType) {
+      if (flightDetails.vehicles.length === 0) {
         alert('Please select a vehicle for airport transfer.');
         return;
       }
@@ -236,7 +236,10 @@ const CustomizePage = () => {
         checkInDate: new Date(formData.checkInDate),
         checkOutDate: new Date(formData.checkOutDate),
         airportPickup,
-        airportTransferDetails: airportPickup ? flightDetails : undefined
+        airportTransferDetails: airportPickup ? {
+          ...flightDetails,
+          price: flightDetails.vehicles.reduce((sum, v) => sum + (v.price * v.count), 0)
+        } : undefined
       };
 
       if (existingPackageId) {
@@ -317,6 +320,10 @@ const CustomizePage = () => {
       </div>
     );
   }
+
+  const airportTransferPrice = airportPickup
+    ? flightDetails.vehicles.reduce((sum, v) => sum + (v.price * v.count), 0)
+    : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -877,15 +884,15 @@ const CustomizePage = () => {
                           <span>Sightseeing</span>
                           <span>₹{Math.round(pricing.pricing.sightseeingTotal).toLocaleString()}</span>
                         </div>
-                        {airportPickup && flightDetails.price > 0 && (
+                        {airportPickup && airportTransferPrice > 0 && (
                           <div className="flex justify-between text-sm text-gray-600">
                             <span>Airport Transfer</span>
-                            <span>₹{flightDetails.price.toLocaleString()}</span>
+                            <span>₹{airportTransferPrice.toLocaleString()}</span>
                           </div>
                         )}
                         <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between items-end">
                           <span className="text-sm font-bold uppercase text-gray-700">Estimated Total</span>
-                          <span className="text-2xl font-bold text-black">₹{(pricing.pricing.grandTotal + (airportPickup ? flightDetails.price : 0)).toLocaleString()}</span>
+                          <span className="text-2xl font-bold text-black">₹{(pricing.pricing.grandTotal + airportTransferPrice).toLocaleString()}</span>
                         </div>
                       </div>
                     ) : (
