@@ -173,7 +173,9 @@ export const galleryAPI = {
 
 export const contentAPI = {
   getAllContent: () => api.get('/content'),
-  updateContent: (key, formData) => api.put(`/content/${key}`, formData),
+  updateContent: (key, formData) => api.put(`/content/${key}`, formData, {
+    headers: { 'Content-Type': undefined }
+  }),
 };
 
 export default api;
