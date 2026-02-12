@@ -9,8 +9,23 @@ const upload = multer({ storage: storage });
 
 router.post('/', adminAuth, upload.array('images', 20), async (req, res) => {
     try {
+        console.log('--- Gallery Upload Debug ---');
+        console.log('Headers:', req.headers);
+        console.log('Req Files:', req.files);
+        console.log('Req Body:', req.body);
+
         if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ message: 'No image files uploaded' });
+            console.error('No files found in request');
+            const debugInfo = {
+                contentType: req.headers['content-type'],
+                bodyKeys: Object.keys(req.body || {}),
+                filesType: typeof req.files,
+                isFilesArray: Array.isArray(req.files)
+            };
+            return res.status(400).json({
+                message: 'No image files uploaded',
+                debug: debugInfo
+            });
         }
 
         const uploadedImages = [];
