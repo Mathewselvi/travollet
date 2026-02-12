@@ -7,7 +7,6 @@ const BentoItem = ({ src, alt, className = "", children }) => {
     const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setImgSrc(src);
         setHasError(false);
     }, [src]);
@@ -15,9 +14,11 @@ const BentoItem = ({ src, alt, className = "", children }) => {
     const handleError = () => {
         if (!hasError) {
             setHasError(true);
-            setImgSrc("https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1000&auto=format&fit=crop");
+            setImgSrc(null);
         }
     };
+
+    if (!imgSrc && !children) return null;
 
     return (
         <div className={`relative group overflow-hidden ${className}`}>
@@ -36,27 +37,7 @@ const BentoItem = ({ src, alt, className = "", children }) => {
 
 const BentoGallery = () => {
     const [galleryImages, setGalleryImages] = useState([]);
-    const [, setLoading] = useState(true);
-
-
-    const placeholders = [
-        "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1585942907797-4e3f421495e8?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1615172282427-9a5752d64d57?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1504519632665-26613f15bccc?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1000&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=1000&auto=format&fit=crop",
-    ];
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -75,11 +56,9 @@ const BentoGallery = () => {
 
     const getImage = (index) => {
         if (galleryImages.length > index) {
-            const img = galleryImages[index];
-            if (img.imageUrl.startsWith('http')) return img.imageUrl;
-            return `${img.imageUrl}`;
+            return galleryImages[index].imageUrl;
         }
-        return placeholders[index % placeholders.length];
+        return null;
     };
 
     const getCaption = (index) => {
@@ -87,42 +66,73 @@ const BentoGallery = () => {
         return "";
     };
 
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-6 auto-rows-[250px] w-full gap-0">
-            { }
-            <BentoItem src={getImage(0)} alt={getCaption(0)} className="col-span-1 md:col-span-1" />
-            <BentoItem src={getImage(1)} alt={getCaption(1)} className="col-span-1 md:col-span-1" />
-            <BentoItem src={getImage(2)} alt={getCaption(2)} className="col-span-1 md:col-span-1" />
+    if (loading) return null;
 
-            <div className="col-span-1 md:col-span-1 grid grid-rows-2 gap-0">
-                <BentoItem src={getImage(3)} alt={getCaption(3)} className="row-span-1" />
-                <BentoItem src={getImage(4)} alt={getCaption(4)} className="row-span-1" />
+    // If no images uploaded yet, show a minimal CTA
+    if (galleryImages.length === 0) {
+        return (
+            <div className="w-full py-20 bg-gray-50 flex flex-col items-center justify-center text-center px-6">
+                <h3 className="text-black text-3xl font-bold uppercase mb-4 tracking-widest font-display"># LET THE TRAVEL BEGIN</h3>
+                <p className="text-gray-400 mb-6 font-light">Our gallery is being curated. Check back soon for stunning travel moments.</p>
+                <Link to="/gallery" className="btn-unified text-xs px-6 py-2">View Gallery</Link>
             </div>
+        );
+    }
 
-            <BentoItem src={getImage(5)} alt={getCaption(5)} className="col-span-1 md:col-span-1" />
-            <BentoItem src={getImage(6)} alt={getCaption(6)} className="col-span-1 md:col-span-1" />
+    // If we have enough images for the full bento layout (15+)
+    if (galleryImages.length >= 15) {
+        return (
+            <div className="grid grid-cols-2 md:grid-cols-6 auto-rows-[250px] w-full gap-0">
+                <BentoItem src={getImage(0)} alt={getCaption(0)} className="col-span-1 md:col-span-1" />
+                <BentoItem src={getImage(1)} alt={getCaption(1)} className="col-span-1 md:col-span-1" />
+                <BentoItem src={getImage(2)} alt={getCaption(2)} className="col-span-1 md:col-span-1" />
 
-            { }
-            <BentoItem src={getImage(7)} alt={getCaption(7)} className="col-span-1 md:col-span-2" />
-            <BentoItem src={getImage(8)} alt={getCaption(8)} className="col-span-1 md:col-span-1" />
+                <div className="col-span-1 md:col-span-1 grid grid-rows-2 gap-0">
+                    <BentoItem src={getImage(3)} alt={getCaption(3)} className="row-span-1" />
+                    <BentoItem src={getImage(4)} alt={getCaption(4)} className="row-span-1" />
+                </div>
 
-            { }
-            <BentoItem src={getImage(9)} alt={getCaption(9)} className="col-span-1 md:col-span-2 row-span-2 relative">
-                <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
-                    <h3 className="text-white text-3xl font-bold uppercase mb-4 tracking-widest font-display"># LET THE TRAVEL BEGIN</h3>
+                <BentoItem src={getImage(5)} alt={getCaption(5)} className="col-span-1 md:col-span-1" />
+                <BentoItem src={getImage(6)} alt={getCaption(6)} className="col-span-1 md:col-span-1" />
+
+                <BentoItem src={getImage(7)} alt={getCaption(7)} className="col-span-1 md:col-span-2" />
+                <BentoItem src={getImage(8)} alt={getCaption(8)} className="col-span-1 md:col-span-1" />
+
+                <BentoItem src={getImage(9)} alt={getCaption(9)} className="col-span-1 md:col-span-2 row-span-2 relative">
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
+                        <h3 className="text-white text-3xl font-bold uppercase mb-4 tracking-widest font-display"># LET THE TRAVEL BEGIN</h3>
+                        <Link to="/gallery" className="btn-unified white text-xs px-6 py-2">View Gallery</Link>
+                    </div>
+                </BentoItem>
+
+                <BentoItem src={getImage(10)} alt={getCaption(10)} className="col-span-1 md:col-span-1" />
+
+                <BentoItem src={getImage(11)} alt={getCaption(11)} className="col-span-1 md:col-span-1" />
+                <BentoItem src={getImage(12)} alt={getCaption(12)} className="col-span-1 md:col-span-1" />
+                <BentoItem src={getImage(13)} alt={getCaption(13)} className="col-span-1 md:col-span-1" />
+                <BentoItem src={getImage(14)} alt={getCaption(14)} className="col-span-1 md:col-span-1" />
+            </div>
+        );
+    }
+
+    // For fewer images, use a simpler responsive grid
+    return (
+        <div className="w-full">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[250px] w-full gap-0">
+                {galleryImages.map((img, index) => (
+                    <BentoItem
+                        key={img._id}
+                        src={img.imageUrl}
+                        alt={img.caption || "Gallery Image"}
+                        className="col-span-1"
+                    />
+                ))}
+                {/* CTA tile */}
+                <div className="col-span-1 relative bg-black/90 flex flex-col items-center justify-center text-center p-4">
+                    <h3 className="text-white text-xl font-bold uppercase mb-3 tracking-widest font-display"># LET THE TRAVEL BEGIN</h3>
                     <Link to="/gallery" className="btn-unified white text-xs px-6 py-2">View Gallery</Link>
                 </div>
-            </BentoItem>
-
-            <BentoItem src={getImage(10)} alt={getCaption(10)} className="col-span-1 md:col-span-1" />
-
-            { }
-            { }
-            <BentoItem src={getImage(11)} alt={getCaption(11)} className="col-span-1 md:col-span-1" />
-            <BentoItem src={getImage(12)} alt={getCaption(12)} className="col-span-1 md:col-span-1" />
-            <BentoItem src={getImage(13)} alt={getCaption(13)} className="col-span-1 md:col-span-1" /> { }
-            { }
-            <BentoItem src={getImage(14)} alt={getCaption(14)} className="col-span-1 md:col-span-1" />
+            </div>
         </div>
     );
 };
