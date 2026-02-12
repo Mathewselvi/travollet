@@ -55,13 +55,34 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 
-console.log('Connecting to MongoDB...', process.env.MONGODB_URI ? 'URI Provided' : 'URI Missing');
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    // Optional: process.exit(1) if you want to fail hard
-  });
+// Database Connection Logic for Serverless
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) {
+    console.log('Using existing DB connection');
+    return;
+  }
+
+  try {
+    const db = await mongoose.connect(process.env.MONGODB_URI);
+    isConnected = db.connections[0].readyState;
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error; // Let the request fail if DB fails
+  }
+};
+
+// Connection Middleware
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ message: 'Database connection failed' });
+  }
+});
 
 
 io.on('connection', (socket) => {
