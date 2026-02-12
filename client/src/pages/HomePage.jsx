@@ -32,10 +32,10 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {}
+    <div className="min-h-screen bg-white overflow-x-hidden">
+      { }
       <section className="relative h-screen w-full overflow-hidden">
-        {}
+        { }
         <div className="absolute inset-0 w-full h-full">
           <img
             src={content.home_hero_bg || "https://images.unsplash.com/photo-1580818135730-ebd11086660b?q=80&w=2314&auto=format&fit=crop"}
@@ -45,7 +45,7 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-black/40"></div>
         </div>
 
-        {}
+        { }
         <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 reveal-on-scroll">
           <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tight leading-tight mb-6">
             DISCOVER YOUR <br />
@@ -66,7 +66,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {}
+      { }
       <section className="py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex justify-between items-end mb-16 reveal-on-scroll">
@@ -79,8 +79,8 @@ const HomePage = () => {
             </Link>
           </div>
 
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 md:grid md:grid-cols-3 md:gap-10 pb-8 md:pb-0 -mx-6 px-6 md:mx-0 md:px-0 hide-scrollbar">
-            {}
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 md:grid md:grid-cols-3 md:gap-10 pb-8 md:pb-0 hide-scrollbar">
+            { }
             <Link to="/category/basic" className="flex-none w-[85vw] md:w-auto snap-center group cursor-pointer relative h-[450px] md:h-[500px] overflow-hidden rounded-[30px] md:rounded-[40px] reveal-on-scroll transition-all duration-500 hover:shadow-2xl">
               <div className="absolute inset-0">
                 <img
@@ -103,7 +103,7 @@ const HomePage = () => {
               </div>
             </Link>
 
-            {}
+            { }
             <Link to="/category/premium" className="flex-none w-[85vw] md:w-auto snap-center group cursor-pointer relative h-[450px] md:h-[500px] overflow-hidden rounded-[30px] md:rounded-[40px] reveal-on-scroll transition-all duration-500 hover:shadow-2xl" style={{ transitionDelay: '100ms' }}>
               <div className="absolute inset-0">
                 <img
@@ -126,7 +126,7 @@ const HomePage = () => {
               </div>
             </Link>
 
-            {}
+            { }
             <Link to="/category/luxury" className="flex-none w-[85vw] md:w-auto snap-center group cursor-pointer relative h-[450px] md:h-[500px] overflow-hidden rounded-[30px] md:rounded-[40px] reveal-on-scroll transition-all duration-500 hover:shadow-2xl" style={{ transitionDelay: '200ms' }}>
               <div className="absolute inset-0">
                 <img
@@ -158,8 +158,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {}
-      <section className="py-32 bg-gray-50">
+      { }
+      <section className="py-32 bg-gray-50 overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center gap-20">
             <div className="w-full md:w-1/2 reveal-on-scroll">
