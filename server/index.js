@@ -161,8 +161,17 @@ app.get('/', (req, res) => {
   res.json({ message: 'Travollet API is running!' });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Only listen if running directly (local dev), not when imported by Vercel
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
-module.exports = app;
+// Export a handler that bridges Vercel's req/res to the Node HTTP server
+// This allows Socket.IO (attached to server) to handle requests before Express
+module.exports = async (req, res) => {
+  // Ensure DB is connected for every request (including Socket.IO polling)
+  await connectDB();
+  server.emit('request', req, res);
+};
