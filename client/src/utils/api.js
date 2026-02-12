@@ -158,8 +158,12 @@ export const adminAPI = {
 
 
   /* headers: { 'Content-Type': 'multipart/form-data' } - Removed to let browser set boundary */
-  uploadImage: (formData) => api.post('/gallery', formData),
-  uploadFile: (formData) => api.post('/admin/upload', formData),
+  uploadImage: (formData) => api.post('/gallery', formData, {
+    headers: { 'Content-Type': undefined }
+  }),
+  uploadFile: (formData) => api.post('/admin/upload', formData, {
+    headers: { 'Content-Type': undefined }
+  }),
   deleteImage: (id) => api.delete(`/gallery/${id}`),
 };
 
