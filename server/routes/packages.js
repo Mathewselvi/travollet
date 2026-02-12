@@ -185,8 +185,16 @@ router.post('/:id/create-order', auth, async (req, res) => {
       return res.status(400).json({ message: availResult.message });
     }
 
+    console.log(`[RAZORPAY] Creating order for pkg ${package._id}. GrandTotal: ${package.pricing.grandTotal}`);
+
+    let amount = Math.round(package.pricing.grandTotal * 100);
+    if (isNaN(amount) || amount <= 0) {
+      console.error(`[RAZORPAY] Invalid Amount: ${amount}. GrandTotal was: ${package.pricing.grandTotal}`);
+      return res.status(400).json({ message: 'Invalid package pricing. Please recreate the booking.' });
+    }
+
     const options = {
-      amount: Math.round(package.pricing.grandTotal * 100), // amount in smallest currency unit (paise)
+      amount: amount, // amount in smallest currency unit (paise)
       currency: "INR",
       receipt: `receipt_${package._id}`,
     };
