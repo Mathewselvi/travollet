@@ -27,7 +27,31 @@ router.get('/history/:userId', auth, admin, async (req, res) => {
 });
 
 
+router.post('/conversations/:conversationId/messages', auth, async (req, res) => {
+    try {
+        const { content } = req.body;
+        const conversationId = req.params.conversationId;
+        const senderId = req.user._id;
 
+        // Determine if sender is admin based on user role or specific logic
+        // Assuming req.user.role is populated by auth middleware, or we check if user is admin
+        const isAdmin = req.user.role === 'admin';
+
+        const newMessage = new Message({
+            conversationId,
+            sender: senderId,
+            content,
+            isAdmin,
+            isRead: false
+        });
+
+        await newMessage.save();
+        res.status(201).json(newMessage);
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ message: 'Failed to send message' });
+    }
+});
 router.get('/conversations', auth, admin, async (req, res) => {
     try {
 

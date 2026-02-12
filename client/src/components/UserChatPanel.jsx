@@ -1,19 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import { chatAPI } from '../utils/api';
-
-import { SOCKET_URL } from '../utils/api';
-
-const ENDPOINT = SOCKET_URL;
 
 const UserChatPanel = () => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const [socket, setSocket] = useState(null);
     const messagesEndRef = useRef(null);
-    const typingTimeoutRef = useRef(null);
 
 
     const scrollToBottom = () => {
@@ -23,73 +16,61 @@ const UserChatPanel = () => {
     useEffect(() => {
         if (!user) return;
 
-        const newSocket = io(ENDPOINT, {
-            transports: ['polling'],
-            reconnection: true,
-        });
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSocket(newSocket);
-
-
-        const userId = user._id || user.id;
-        if (userId) {
-            console.log('🔌 UserChatPanel Joining Room:', userId);
-            newSocket.emit('join_chat', userId);
-        } else {
-            console.error('❌ UserChatPanel Missing UserID:', user);
-        }
-
-
+        // Poll for messages every 3 seconds
         const fetchHistory = async () => {
             try {
                 const response = await chatAPI.getMyHistory();
-                setMessages(response.data);
-                scrollToBottom();
+                const newMessages = response.data;
+
+                // Only scroll if new messages arrived
+                if (newMessages.length > messages.length) {
+                    setMessages(newMessages);
+                    scrollToBottom();
+                } else {
+                    // Check if last message is different to handle read status changes or edge cases
+                    const lastMsg = newMessages[newMessages.length - 1];
+                    const currentLastMsg = messages[messages.length - 1];
+                    if (lastMsg?._id !== currentLastMsg?._id) {
+                        setMessages(newMessages);
+                        scrollToBottom();
+                    }
+                }
             } catch (err) {
                 console.error('Failed to load chat history', err);
             }
         };
+
+        // Initial fetch
         fetchHistory();
 
+        // Polling interval
+        const intervalId = setInterval(fetchHistory, 3000);
 
-        newSocket.on('receive_message', (message) => {
-            console.log('📨 UserChatPanel Received:', message);
-            setMessages((prev) => [...prev, message]);
-            scrollToBottom();
-        });
-
-        newSocket.on('connect', () => {
-            console.log('✅ UserChatPanel Connected:', newSocket.id);
-        });
-
-        return () => newSocket.disconnect();
-    }, [user]);
+        return () => clearInterval(intervalId);
+    }, [user, messages.length]); // Depend on length to avoid excessive re-renders but keep updated
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
-
-
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         const userId = user._id || user.id;
-        if (!newMessage.trim() || !socket || !userId) return;
+        if (!newMessage.trim() || !userId) return;
 
-        const messageData = {
-            senderId: userId,
-            receiverId: null,
-            conversationId: userId,
-            content: newMessage,
-            isAdmin: false
-        };
-
-        socket.emit('send_message', messageData);
-        socket.emit('stop_typing', { room: userId, isTyping: false });
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
-        setNewMessage('');
+        try {
+            await chatAPI.sendMessage(userId, newMessage);
+            setNewMessage('');
+            // Fetch immediately to show the new message
+            const response = await chatAPI.getMyHistory();
+            setMessages(response.data);
+            scrollToBottom();
+        } catch (err) {
+            console.error("Failed to send message", err);
+            alert("Failed to send message. Please try again.");
+        }
     };
+    /* Removed socket.io typing indicators as they are not supported in polling mode */
 
     return (
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden h-[600px] flex flex-col">

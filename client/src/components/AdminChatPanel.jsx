@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
 import { adminAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-
-import { SOCKET_URL } from '../utils/api';
-
-const ENDPOINT = SOCKET_URL;
 
 const AdminChatPanel = () => {
     const { user } = useAuth();
@@ -13,8 +8,6 @@ const AdminChatPanel = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const [socket, setSocket] = useState(null);
-    const [typingUsers, setTypingUsers] = useState({});
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -23,111 +16,67 @@ const AdminChatPanel = () => {
 
 
     useEffect(() => {
-        const newSocket = io(ENDPOINT, {
-            transports: ['polling'],
-            reconnection: true,
-        });
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSocket(newSocket);
-
-        return () => newSocket.disconnect();
+        fetchConversations();
+        // Poll conversations every 10 seconds
+        const intervalId = setInterval(fetchConversations, 10000);
+        return () => clearInterval(intervalId);
     }, []);
 
-
-    const fetchConversations = async () => {
-        try {
-            const response = await adminAPI.getAllConversations();
-            setConversations(response.data);
-        } catch (err) {
-            console.error('Error fetching conversations:', err);
-        }
-    };
-
+    // Effect to poll messages for selected user
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchConversations();
-
-        if (socket) {
-
-            socket.on('conversation_updated', () => {
-
-
-                fetchConversations();
-            });
-
-
-            socket.on('display_typing', (data) => {
-                setTypingUsers(prev => ({ ...prev, [data.room]: true }));
-            });
-
-            socket.on('stop_typing', (data) => {
-                setTypingUsers(prev => ({ ...prev, [data.room]: false }));
-            });
-        }
-
-        return () => {
-            if (socket) {
-                socket.off('conversation_updated');
-                socket.off('display_typing');
-                socket.off('stop_typing');
-            }
-        };
-    }, [socket]);
-
-
-    useEffect(() => {
-        if (!selectedUser || !socket) return;
-
-
-        socket.emit('join_chat', selectedUser._id);
+        if (!selectedUser) return;
 
         const fetchHistory = async () => {
             try {
                 const response = await adminAPI.getConversationMessages(selectedUser._id);
-                setMessages(response.data);
-                setTimeout(scrollToBottom, 100);
+                const newMessages = response.data;
+
+                // Only scroll if new messages
+                if (newMessages.length > messages.length) {
+                    setMessages(newMessages);
+                    scrollToBottom();
+                } else {
+                    // Check if last message changed (e.g. read status)
+                    const lastMsg = newMessages[newMessages.length - 1];
+                    const currentLastMsg = messages[messages.length - 1];
+                    if (lastMsg?._id !== currentLastMsg?._id) {
+                        setMessages(newMessages);
+                        scrollToBottom();
+                    }
+                }
             } catch (err) {
                 console.error('Error fetching history:', err);
             }
         };
+
         fetchHistory();
+        // Poll messages every 3 seconds when a user is selected
+        const intervalId = setInterval(fetchHistory, 3000);
 
-        const handleReceiveMessage = (message) => {
-
-            if (message.conversationId === selectedUser._id) {
-                setMessages((prev) => [...prev, message]);
-                scrollToBottom();
-            }
-
-            fetchConversations();
-        };
-
-        socket.on('receive_message', handleReceiveMessage);
-
-        return () => {
-            socket.off('receive_message', handleReceiveMessage);
-        };
-    }, [selectedUser, socket]);
+        return () => clearInterval(intervalId);
+    }, [selectedUser, messages.length]);
 
 
-
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         const adminId = user._id || user.id;
-        const targetUserId = selectedUser._id || selectedUser.id || selectedUser;
+        const targetUserId = selectedUser?._id || selectedUser?.id;
 
-        if (!newMessage.trim() || !socket || !selectedUser || !adminId) return;
+        if (!newMessage.trim() || !selectedUser || !adminId) return;
 
-        const messageData = {
-            senderId: adminId,
-            receiverId: targetUserId,
-            conversationId: targetUserId,
-            content: newMessage,
-            isAdmin: true
-        };
+        try {
+            await adminAPI.sendAdminMessage(targetUserId, newMessage);
+            setNewMessage('');
 
-        socket.emit('send_message', messageData);
-        setNewMessage('');
+            // Immediate fetch to update UI
+            const response = await adminAPI.getConversationMessages(targetUserId);
+            setMessages(response.data);
+            scrollToBottom();
+            fetchConversations(); // Update side list too
+        } catch (err) {
+            console.error("Failed to send admin message", err);
+            alert("Failed to send message");
+        }
     };
 
     const handleDeleteConversation = async (userId) => {
@@ -189,9 +138,7 @@ const AdminChatPanel = () => {
                                     </div>
                                 </div>
                                 <p className="text-xs text-gray-500 truncate">
-                                    {typingUsers[conv.user._id] ? (
-                                        <span className="text-gold font-bold animate-pulse">Typing...</span>
-                                    ) : conv.lastMessage}
+                                    <span className="text-gray-500 truncate">{conv.lastMessage}</span>
                                 </p>
                                 <p className="text-[10px] text-gray-400 mt-1">{new Date(conv.lastMessageDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                             </div>
