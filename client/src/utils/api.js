@@ -157,12 +157,9 @@ export const adminAPI = {
   sendAdminMessage: (conversationId, content) => api.post(`/chat/conversations/${conversationId}/messages`, { content }),
 
 
-  uploadImage: (formData) => api.post('/gallery', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
-  uploadFile: (formData) => api.post('/admin/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  /* headers: { 'Content-Type': 'multipart/form-data' } - Removed to let browser set boundary */
+  uploadImage: (formData) => api.post('/gallery', formData),
+  uploadFile: (formData) => api.post('/admin/upload', formData),
   deleteImage: (id) => api.delete(`/gallery/${id}`),
 };
 
@@ -172,9 +169,7 @@ export const galleryAPI = {
 
 export const contentAPI = {
   getAllContent: () => api.get('/content'),
-  updateContent: (key, formData) => api.put(`/content/${key}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  updateContent: (key, formData) => api.put(`/content/${key}`, formData),
 };
 
 export default api;
