@@ -158,12 +158,11 @@ export const adminAPI = {
   sendAdminMessage: (conversationId, content) => api.post(`/chat/conversations/${conversationId}/messages`, { content }),
 
 
-  /* headers: { 'Content-Type': 'multipart/form-data' } - Removed to let browser set boundary */
   uploadImage: (formData) => api.post('/gallery', formData, {
-    headers: { 'Content-Type': undefined }
+    headers: { 'Content-Type': 'multipart/form-data' }
   }),
   uploadFile: (formData) => api.post('/admin/upload', formData, {
-    headers: { 'Content-Type': undefined }
+    headers: { 'Content-Type': 'multipart/form-data' }
   }),
   deleteImage: (id) => api.delete(`/gallery/${id}`),
 };

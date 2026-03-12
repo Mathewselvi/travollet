@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Compass, Map, Package, Sliders, ShieldCheck, Sparkles, X, ArrowRight } from 'lucide-react';
 import { galleryAPI } from '../utils/api';
@@ -49,6 +50,7 @@ const introSteps = [
 ];
 
 const IntroGuide = () => {
+    const location = useLocation();
     const [isVisible, setIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [galleryImages, setGalleryImages] = useState([]);
@@ -64,17 +66,18 @@ const IntroGuide = () => {
                 console.error("Failed to fetch gallery images for intro:", error);
             }
         };
-        fetchImages();
-
-        // Temporarily bypassing localStorage for development so it always shows
-        // const hasSeenIntro = localStorage.getItem('travollet_intro_seen');
-        // if (!hasSeenIntro) {
-        const timer = setTimeout(() => {
-            setIsVisible(true);
-        }, 800);
-        return () => clearTimeout(timer);
-        // }
-    }, []);
+        
+        const hasSeenIntro = localStorage.getItem('travollet_intro_seen');
+        
+        // Only trigger the intro on the home page and only if they haven't seen it yet
+        if (!hasSeenIntro && location.pathname === '/') {
+            fetchImages();
+            const timer = setTimeout(() => {
+                setIsVisible(true);
+            }, 800);
+            return () => clearTimeout(timer);
+        }
+    }, [location.pathname]);
 
     const handleNext = () => {
         if (currentStep < introSteps.length - 1) {
