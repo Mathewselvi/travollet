@@ -158,10 +158,11 @@ const AdminAirportTransfer = () => {
                                     type="button"
                                     onClick={() => {
                                         const input = document.getElementById('imageUrlInput');
-                                        if (input.value) {
+                                        const val = input.value.trim();
+                                        if (val) {
                                             setFormData(prev => ({
                                                 ...prev,
-                                                images: [...prev.images, input.value]
+                                                images: [...prev.images, val]
                                             }));
                                             input.value = '';
                                         }
@@ -188,10 +189,10 @@ const AdminAirportTransfer = () => {
                                             try {
                                                 const res = await adminAPI.uploadFile(formDataUpload);
                                                 if (res.data.images && res.data.images.length > 0) {
-                                                    const newUrls = res.data.images.map(img => img.imageUrl);
+                                                    const newUrls = res.data.images.map(img => img.imageUrl).filter(Boolean);
                                                     setFormData(prev => ({
                                                         ...prev,
-                                                        images: [...prev.images, ...newUrls]
+                                                        images: [...prev.images, ...newUrls].filter(Boolean)
                                                     }));
                                                 }
                                             } catch (error) {
@@ -206,7 +207,12 @@ const AdminAirportTransfer = () => {
                         <div className="flex gap-2 flex-wrap">
                             {formData.images.map((img, index) => (
                                 <div key={index} className="relative w-20 h-20 group">
-                                    <img src={img} alt="Vehicle" className="w-full h-full object-cover rounded" />
+                                    <img 
+                                        src={img || 'https://via.placeholder.com/150x100?text=Invalid'} 
+                                        alt="Vehicle" 
+                                        className="w-full h-full object-cover rounded" 
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150x100?text=Error'; }}
+                                    />
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))}
@@ -259,8 +265,13 @@ const AdminAirportTransfer = () => {
                             <tr key={transfer._id} className="border-b hover:bg-gray-50">
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">
-                                        {transfer.images && transfer.images[0] && (
-                                            <img src={transfer.images[0]} alt={transfer.vehicleType} className="w-12 h-8 object-cover rounded" />
+                                        {transfer.images && transfer.images[0] && transfer.images[0].trim() !== '' && (
+                                            <img 
+                                                src={transfer.images[0]} 
+                                                alt={transfer.vehicleType} 
+                                                className="w-12 h-8 object-cover rounded" 
+                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                            />
                                         )}
                                         {transfer.vehicleType}
                                     </div>

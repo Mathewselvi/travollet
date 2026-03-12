@@ -614,9 +614,10 @@ const CustomizePage = () => {
                         }`}
                     >
                       <img
-                        src={sight.images[0] || 'https://via.placeholder.com/100'}
+                        src={(sight.images && sight.images[0] && sight.images[0].trim() !== '') ? sight.images[0] : 'https://via.placeholder.com/100'}
                         alt={sight.name}
                         className="w-20 h-20 rounded-lg object-cover bg-gray-100"
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/100?text=Image+Not+Found'; }}
                       />
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
@@ -671,9 +672,10 @@ const CustomizePage = () => {
                             >
                               <div className="aspect-video bg-gray-100 rounded mb-2 overflow-hidden">
                                 <img
-                                  src={vehicle.images?.[0] || 'https://via.placeholder.com/150x100?text=Vehicle'}
+                                  src={(vehicle.images && vehicle.images[0] && vehicle.images[0].trim() !== '') ? vehicle.images[0] : 'https://via.placeholder.com/150x100?text=Vehicle'}
                                   alt={vehicle.vehicleType}
                                   className="w-full h-full object-cover"
+                                  onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150x100?text=Error'; }}
                                 />
                               </div>
                               <div className="font-bold text-sm mb-1">{vehicle.vehicleType}</div>
