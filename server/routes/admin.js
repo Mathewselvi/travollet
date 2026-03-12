@@ -303,6 +303,7 @@ router.get('/dashboard', adminAuth, async (req, res) => {
       bookedPackages: await Package.countDocuments({ status: 'booked' }),
       recentPackages: await Package.find()
         .populate('userId', 'name email')
+        .populate('tourPackageId', 'title')
         .populate('stayId', 'name category')
         .sort({ createdAt: -1 })
         .limit(10)
@@ -318,6 +319,7 @@ router.get('/packages', adminAuth, async (req, res) => {
   try {
     const packages = await Package.find()
       .populate('userId', 'name email phone')
+      .populate('tourPackageId', 'title')
       .populate('stayId', 'name category pricePerNight')
       .populate('transportationId', 'name type pricePerDay')
       .populate('sightseeingIds', 'name pricePerPerson')
@@ -336,7 +338,7 @@ router.put('/packages/:id/status', adminAuth, async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    ).populate('userId', 'name email');
+    ).populate('userId', 'name email').populate('tourPackageId', 'title').populate('stayId', 'name');
 
     if (!package) {
       return res.status(404).json({ message: 'Package not found' });
@@ -347,11 +349,12 @@ router.put('/packages/:id/status', adminAuth, async (req, res) => {
       try {
         const checkIn = new Date(package.checkInDate).toLocaleDateString();
         const checkOut = new Date(package.checkOutDate).toLocaleDateString();
+        const packageName = package.tourPackageId ? package.tourPackageId.title : package.stayId.name;
 
         const userHtml = `
           <h1>Booking Confirmed!</h1>
           <p>Dear ${package.userId.name},</p>
-          <p>Great news! Your booking for <strong>${package.stayId.name}</strong> has been <strong>CONFIRMED</strong>.</p>
+          <p>Great news! Your booking for <strong>${packageName}</strong> has been <strong>CONFIRMED</strong>.</p>
           <p><strong>Dates:</strong> ${checkIn} - ${checkOut}</p>
           <p><strong>Total Paid:</strong> ₹${package.pricing.grandTotal.toLocaleString()}</p>
           <p>We look forward to hosting you!</p>
@@ -370,11 +373,12 @@ router.put('/packages/:id/status', adminAuth, async (req, res) => {
       try {
         const checkIn = new Date(package.checkInDate).toLocaleDateString();
         const checkOut = new Date(package.checkOutDate).toLocaleDateString();
+        const packageName = package.tourPackageId ? package.tourPackageId.title : package.stayId.name;
 
         const userHtml = `
           <h1>Booking Cancelled</h1>
           <p>Dear ${package.userId.name},</p>
-          <p>We regret to inform you that your booking for <strong>${package.stayId.name}</strong> (Booking ID: ${package._id}) has been <strong>CANCELLED</strong>.</p>
+          <p>We regret to inform you that your booking for <strong>${packageName}</strong> (Booking ID: ${package._id}) has been <strong>CANCELLED</strong>.</p>
           <p><strong>Original Dates:</strong> ${checkIn} - ${checkOut}</p>
           <p>If you have any questions or believe this is an error, please contact our support team immediately.</p>
           <p>Any processed payments will be refunded according to our refund policy.</p>

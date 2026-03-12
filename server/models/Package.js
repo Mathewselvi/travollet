@@ -11,6 +11,10 @@ const packageSchema = new mongoose.Schema({
     ref: 'Stay',
     required: true
   },
+  tourPackageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TourPackage'
+  },
   transportationId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transportation'

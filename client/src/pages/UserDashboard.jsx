@@ -177,10 +177,10 @@ const UserDashboard = () => {
                     <div className="p-8 flex-1 flex flex-col">
                       <div className="mb-4">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
-                          {pkg.stayId?.category || 'Custom Trip'}
+                          {pkg.tourPackageId ? 'Predefined Package' : pkg.stayId?.category || 'Custom Trip'}
                         </p>
                         <h3 className="text-2xl font-serif font-bold group-hover:text-gray-700 transition-colors line-clamp-2">
-                          {pkg.stayId?.name || 'Your Custom Package'}
+                          {pkg.tourPackageId?.title || pkg.stayId?.name || 'Your Custom Package'}
                         </h3>
                       </div>
 

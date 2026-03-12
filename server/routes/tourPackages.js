@@ -151,6 +151,7 @@ router.post('/:id/book', auth, async (req, res) => {
 
         const newBooking = new Package({
             userId: req.user._id,
+            tourPackageId: tourPackage._id,
             stayId: tourPackage.stayId, // Assumes stayId is present. If optional in TourPackage, need check.
             transportationId: tourPackage.transportationId,
             sightseeingIds: tourPackage.sightseeingIds,

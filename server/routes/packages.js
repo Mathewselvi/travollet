@@ -294,6 +294,7 @@ router.post('/:id/verify-payment', auth, async (req, res) => {
       try {
         const fullPackage = await Package.findById(package._id)
           .populate('userId', 'name email phone')
+          .populate('tourPackageId', 'title')
           .populate('stayId', 'name location')
           .populate('transportationId', 'name type')
           .populate('sightseeingIds', 'name pricePerPerson');
@@ -301,11 +302,12 @@ router.post('/:id/verify-payment', auth, async (req, res) => {
         if (fullPackage && fullPackage.userId && fullPackage.userId.email) {
           const checkIn = new Date(fullPackage.checkInDate).toLocaleDateString();
           const checkOut = new Date(fullPackage.checkOutDate).toLocaleDateString();
+          const packageName = fullPackage.tourPackageId ? fullPackage.tourPackageId.title : fullPackage.stayId.name;
 
           const userHtml = `
             <h1>Payment Received</h1>
             <p>Dear ${fullPackage.userId.name},</p>
-            <p>We have received your payment of <strong>₹${fullPackage.pricing.grandTotal.toLocaleString()}</strong> for <strong>${fullPackage.stayId.name}</strong>.</p>
+            <p>We have received your payment of <strong>₹${fullPackage.pricing.grandTotal.toLocaleString()}</strong> for <strong>${packageName}</strong>.</p>
             <p><strong>Dates:</strong> ${checkIn} - ${checkOut}</p>
             <p>Your booking is currently <strong>PENDING CONFIRMATION</strong>. We will review your booking and send you a confirmation email shortly.</p>
             <p>Booking ID: ${fullPackage._id}</p>
@@ -331,6 +333,8 @@ router.post('/:id/verify-payment', auth, async (req, res) => {
               
               <h2>Booking Details</h2>
               <p><strong>Booking ID:</strong> ${fullPackage._id}</p>
+              <p><strong>Package Type:</strong> ${fullPackage.tourPackageId ? 'Predefined Tour Package' : 'Customized Booking'}</p>
+              ${fullPackage.tourPackageId ? `<p><strong>Package Name:</strong> ${fullPackage.tourPackageId.title}</p>` : ''}
               <p><strong>Dates:</strong> ${checkIn} - ${checkOut} (${fullPackage.numberOfDays} Days)</p>
               <p><strong>Guests:</strong> ${fullPackage.numberOfPeople}</p>
               
@@ -406,6 +410,7 @@ router.put('/:id/pay', auth, async (req, res) => {
 router.get('/my-packages', auth, async (req, res) => {
   try {
     const packages = await Package.find({ userId: req.user._id })
+      .populate('tourPackageId', 'title')
       .populate('stayId', 'name category pricePerNight location images')
       .populate('transportationId', 'name type pricePerDay')
       .populate('sightseeingIds', 'name pricePerPerson location')
@@ -424,6 +429,7 @@ router.get('/:id', auth, async (req, res) => {
       _id: req.params.id,
       userId: req.user._id
     })
+      .populate('tourPackageId', 'title')
       .populate('stayId')
       .populate('transportationId')
       .populate('sightseeingIds');

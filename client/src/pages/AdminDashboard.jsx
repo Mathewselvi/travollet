@@ -249,7 +249,7 @@ const AdminOverview = ({ data }) => {
                       <div className="text-xs text-gray-400">{pkg.userId?.email}</div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                      {pkg.stayId?.name || 'Custom Package'}
+                      {pkg.tourPackageId?.title || pkg.stayId?.name || 'Custom Package'}
                     </td>
                     <td className="px-6 py-4 font-medium text-black whitespace-nowrap">
                       ₹{pkg.pricing?.grandTotal?.toLocaleString()}

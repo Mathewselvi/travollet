@@ -175,7 +175,12 @@ const AdminBookings = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="font-medium text-black">{pkg.stayId?.name || 'Custom Stay'}</div>
+                        <div className="font-medium text-black">
+                          {pkg.tourPackageId?.title || pkg.stayId?.name || 'Custom Stay'}
+                        </div>
+                        <div className="text-xs text-blue-500 mb-1 font-semibold uppercase tracking-wider">
+                          {pkg.tourPackageId ? 'Predefined Package' : 'Custom Package'}
+                        </div>
                         <div className="text-xs text-gray-500 mt-1">
                           {new Date(pkg.checkInDate).toLocaleDateString()} - {new Date(pkg.checkOutDate).toLocaleDateString()}
                         </div>
