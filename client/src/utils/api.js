@@ -102,6 +102,7 @@ export const packageAPI = {
   createRazorpayOrder: (id) => api.post(`/packages/${id}/create-order`),
   verifyRazorpayPayment: (id, paymentData) => api.post(`/packages/${id}/verify-payment`, paymentData),
   checkAvailability: (params) => api.get('/packages/check-availability', { params }),
+  removePackage: (id) => api.delete(`/packages/${id}`),
 };
 
 export const adminAPI = {

@@ -22,6 +22,7 @@ import BookingDetailsPage from './pages/BookingDetailsPage';
 import PackageBooking from './pages/PackageBooking';
 import GalleryPage from './pages/GalleryPage';
 import ChatWidget from './components/ChatWidget';
+import IntroGuide from './components/IntroGuide';
 import './App.css';
 
 const Layout = ({ children }) => {
@@ -36,6 +37,7 @@ const Layout = ({ children }) => {
       </main>
       {!isAdminRoute && <Footer />}
       <ChatWidget />
+      {!isAdminRoute && <IntroGuide />}
     </div>
   );
 };

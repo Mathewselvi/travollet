@@ -554,4 +554,27 @@ router.put('/:id/cancel', auth, async (req, res) => {
   }
 });
 
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const package = await Package.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!package) {
+      return res.status(404).json({ message: 'Package not found' });
+    }
+
+    if (package.status === 'booked' || package.status === 'confirmed' || package.status === 'completed') {
+      return res.status(400).json({ message: 'Cannot delete active or completed bookings' });
+    }
+
+    await Package.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Package removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

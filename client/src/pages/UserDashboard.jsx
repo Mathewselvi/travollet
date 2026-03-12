@@ -39,6 +39,17 @@ const UserDashboard = () => {
     }
   };
 
+  const handleRemovePackage = async (packageId) => {
+    if (window.confirm('Are you sure you want to permanently remove this journey from your dashboard?')) {
+      try {
+        await packageAPI.removePackage(packageId);
+        fetchUserPackages();
+      } catch (error) {
+        alert(error.response?.data?.message || 'Error removing package');
+      }
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       draft: 'bg-gray-200 text-gray-700',
@@ -215,6 +226,14 @@ const UserDashboard = () => {
                               className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
                             >
                               {pkg.status === 'draft' ? 'Delete' : 'Cancel'}
+                            </button>
+                          )}
+                          {pkg.status === 'cancelled' && (
+                            <button
+                              onClick={() => handleRemovePackage(pkg._id)}
+                              className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors font-bold uppercase tracking-wider"
+                            >
+                              Remove
                             </button>
                           )}
                         </div>

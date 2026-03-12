@@ -56,18 +56,25 @@ const HomePage = () => {
             Explore the world with unparalleled elegance.
           </p>
           <div className="flex flex-col md:flex-row gap-4">
-            <Link
-              to="/destinations"
-              className="btn-unified white"
+            <a
+              href="#journey-style"
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById('journey-style');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="btn-unified white cursor-pointer"
             >
-              Explore Destinations
-            </Link>
+              Explore packages
+            </a>
           </div>
         </div>
       </section>
 
       { }
-      <section className="py-24 bg-white">
+      <section id="journey-style" className="py-24 bg-white">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex justify-between items-end mb-16 reveal-on-scroll">
             <div>

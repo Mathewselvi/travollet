@@ -12,6 +12,7 @@ const CustomizePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const existingPackageId = searchParams.get('package');
+  const queryCategory = searchParams.get('category');
 
 
 
@@ -26,7 +27,7 @@ const CustomizePage = () => {
   });
 
   const [formData, setFormData] = useState({
-    category: 'basic',
+    category: queryCategory && ['basic', 'premium', 'luxury'].includes(queryCategory) ? queryCategory : 'basic',
     stayId: '',
     transportationId: '',
     sightseeingIds: [],
@@ -82,7 +83,7 @@ const CustomizePage = () => {
 
       setFormData(prev => ({
         ...prev,
-        category: trip.stay ? trip.stay.category : 'basic',
+        category: trip.stay ? trip.stay.category : (queryCategory || 'basic'),
         stayId: trip.stay ? trip.stay._id : '',
         transportationId: trip.transportation ? trip.transportation._id : '',
         sightseeingIds: trip.sightseeing.map(s => s._id),
