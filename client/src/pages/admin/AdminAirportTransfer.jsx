@@ -180,20 +180,20 @@ const AdminAirportTransfer = () => {
                                             const files = Array.from(e.target.files);
                                             if (files.length === 0) return;
 
+                                            const formDataUpload = new FormData();
+                                            files.forEach(file => {
+                                                formDataUpload.append('images', file);
+                                            });
+
                                             try {
-                                                const uploadPromises = files.map(file => {
-                                                    const formData = new FormData();
-                                                    formData.append('image', file);
-                                                    return adminAPI.uploadFile(formData);
-                                                });
-
-                                                const responses = await Promise.all(uploadPromises);
-                                                const imageUrls = responses.map(res => res.data.filePath);
-
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    images: [...prev.images, ...imageUrls]
-                                                }));
+                                                const res = await adminAPI.uploadFile(formDataUpload);
+                                                if (res.data.images && res.data.images.length > 0) {
+                                                    const newUrls = res.data.images.map(img => img.imageUrl);
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        images: [...prev.images, ...newUrls]
+                                                    }));
+                                                }
                                             } catch (error) {
                                                 console.error('Upload failed:', error);
                                                 alert('Failed to upload images');
